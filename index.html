@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACIS Transcript System</title>
+<style>
+:root{--nav:#1f314a;--nav2:#2d4b70;--accent:#9b2631;--bg:#f4f6f9;--card:#fff;--text:#223044;--muted:#697586;--line:#e3e8ef}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}.sidebar{width:280px;background:var(--nav);color:#fff;padding:28px 18px;flex-shrink:0}
+.brand{display:flex;gap:14px;align-items:center;margin:10px 12px 34px}.logo{width:52px;height:52px;border-radius:15px;background:var(--accent);display:grid;place-items:center;font-weight:800;font-size:25px}.brand b{font-size:24px}.brand small{display:block;color:#cbd5e1;margin-top:4px;font-size:15px}
+.nav button{width:100%;border:0;background:transparent;color:#dbe5f1;text-align:left;padding:15px 16px;margin:3px 0;border-radius:12px;font-size:16px;cursor:pointer}.nav button:hover,.nav button.active{background:var(--nav2);color:#fff}
+main{flex:1;padding:42px;min-width:0}.page{display:none}.page.active{display:block}.title{font-size:31px;margin:0 0 6px}.subtitle{color:var(--muted);margin:0 0 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px;box-shadow:0 8px 28px rgba(20,35,55,.04)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+label{display:block;font-size:13px;font-weight:700;margin:0 0 7px;color:#526173}input,select{width:100%;padding:12px;border:1px solid #d7dee8;border-radius:10px;font:inherit;background:#fff}input:focus,select:focus{outline:2px solid #cdd9e8;border-color:#7890ad}
+.btn{border:0;border-radius:10px;padding:12px 17px;font-weight:700;cursor:pointer;font-size:14px}.primary{background:var(--accent);color:#fff}.secondary{background:#eef2f6;color:#344255}.danger{background:#fee8e8;color:#9d2222}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+table{width:100%;border-collapse:collapse}th,td{padding:13px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}th{color:#667386;font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:0}
+.toolbar{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:18px}.search{max-width:340px}
+.empty{text-align:center;padding:45px;color:var(--muted)}.stat{font-size:30px;font-weight:800}.statlabel{color:var(--muted);font-size:14px;margin-top:4px}
+.modal{position:fixed;inset:0;background:rgba(15,25,38,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modal.show{display:flex}.modalbox{background:#fff;width:min(760px,100%);max-height:90vh;overflow:auto;border-radius:18px;padding:26px}
+.note{padding:13px 15px;border-radius:10px;background:#fff7df;color:#775a12;margin-bottom:16px;font-size:14px}.success{background:#e8f7ee;color:#17643b}
+.transcript{max-width:900px;margin:auto;background:#fff;padding:50px;border:1px solid #ddd}.transcript h1{text-align:center;margin:0}.transcript .school{text-align:center;color:#555;margin:6px 0 28px}.info{display:grid;grid-template-columns:1fr 1fr;gap:8px 35px;margin:20px 0}.info div{border-bottom:1px solid #ddd;padding:7px 0}.muted{color:var(--muted)}
+@media(max-width:900px){.sidebar{width:220px}main{padding:25px}.grid{grid-template-columns:1fr 1fr}}@media(max-width:650px){.app{display:block}.sidebar{width:100%;padding:15px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;width:auto}.brand{margin-bottom:10px}.grid,.grid2{grid-template-columns:1fr}main{padding:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="brand"><div class="logo">A</div><div><b>ACIS</b><small>Transcript System</small></div></div>
+<div class="nav" id="nav">
+<button class="active" data-page="dashboard">Dashboard</button>
+<button data-page="students">Students</button>
+<button data-page="subjects">Subjects</button>
+<button data-page="records">Academic Records</button>
+<button data-page="import">Bulk Import</button>
+<button data-page="generate">Generate Transcript</button>
+<button data-page="history">History</button>
+<button data-page="settings">Settings</button>
+</div>
+</aside>
+<main>
+<section id="dashboard" class="page active"><h1 class="title">Dashboard</h1><p class="subtitle">Overview of your transcript records.</p>
+<div class="grid"><div class="card"><div class="stat" id="studentCount">0</div><div class="statlabel">Students</div></div><div class="card"><div class="stat" id="subjectCount">0</div><div class="statlabel">Subjects</div></div><div class="card"><div class="stat" id="recordCount">0</div><div class="statlabel">Academic Records</div></div></div>
+<div class="card"><h3>Quick Start</h3><p class="muted">Add students and subjects, enter academic records, then generate an official transcript.</p><div class="actions"><button class="btn primary" onclick="go('students');openStudent()">Add Student</button><button class="btn secondary" onclick="go('subjects');openSubject()">Add Subject</button></div></div></section>
+
+<section id="students" class="page"><div class="toolbar"><div><h1 class="title">Students</h1><p class="subtitle">Manage student information.</p></div><button class="btn primary" onclick="openStudent()">+ Add Student</button></div>
+<div class="card"><input class="search" id="studentSearch" placeholder="Search by name or Student ID..." oninput="renderStudents()"><div id="studentsTable"></div></div></section>
+
+<section id="subjects" class="page"><div class="toolbar"><div><h1 class="title">Subjects</h1><p class="subtitle">Create the subject master list used in transcripts.</p></div><button class="btn primary" onclick="openSubject()">+ Add Subject</button></div><div class="card" id="subjectsTable"></div></section>
+
+<section id="records" class="page"><div class="toolbar"><div><h1 class="title">Academic Records</h1><p class="subtitle">Add grades by student, grade level and semester.</p></div><button class="btn primary" onclick="openRecord()">+ Add Record</button></div><div class="card" id="recordsTable"></div></section>
+
+<section id="import" class="page"><h1 class="title">Bulk Import</h1><p class="subtitle">Import CSV data. Start with Students or Subjects.</p><div class="card"><div class="note">Supported columns for Students: title, first_name, last_name, student_id, nationality, date_of_birth, entry_date, graduation_date</div><input type="file" id="csvFile" accept=".csv"><div class="actions"><select id="importType" style="max-width:220px"><option value="students">Students</option><option value="subjects">Subjects</option></select><button class="btn primary" onclick="importCSV()">Import CSV</button><button class="btn secondary" onclick="downloadTemplate()">Download Template</button></div></div></section>
+
+<section id="generate" class="page"><h1 class="title">Generate Transcript</h1><p class="subtitle">Select a student to preview an official transcript.</p><div class="card"><div class="grid2"><div><label>Student</label><select id="transcriptStudent" onchange="previewTranscript()"></select></div><div><label>Transcript Type</label><select id="transcriptType"><option>Official Transcript</option><option>Unofficial Transcript</option><option>Incomplete Transcript</option></select></div></div><div class="actions"><button class="btn primary" onclick="previewTranscript()">Preview Transcript</button><button class="btn secondary" onclick="window.print()">Print / Save PDF</button></div></div><div id="transcriptPreview"></div></section>
+
+<section id="history" class="page"><h1 class="title">History</h1><p class="subtitle">Transcript previews generated in this browser session.</p><div class="card" id="historyTable"></div></section>
+
+<section id="settings" class="page"><h1 class="title">Settings</h1><p class="subtitle">System configuration.</p><div class="card"><div class="grid2"><div><label>School Name</label><input id="schoolName" value="ACIS"></div><div><label>Transcript Title</label><input id="transcriptTitle" value="OFFICIAL TRANSCRIPT"></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Save Settings</button><button class="btn danger" onclick="resetDemo()">Reset Local Data</button></div></div></section>
+</main></div>
+
+<div class="modal" id="modal"><div class="modalbox" id="modalContent"></div></div>
+<script>
+const key='acis_transcript_fixed_v1';
+let data=JSON.parse(localStorage.getItem(key)||'{"students":[],"subjects":[],"records":[],"history":[],"settings":{"school":"ACIS","title":"OFFICIAL TRANSCRIPT"}}');
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem(key,JSON.stringify(data));refreshCounts()}
+function esc(s){return String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+function fmtDate(v){if(!v)return '---------'; let d=new Date(v+'T00:00:00'); if(isNaN(d))return v; return d.toLocaleDateString('en-US',{month:'long',day:'2-digit',year:'numeric'})}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random()}
+function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(page).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page));if(page==='generate')renderTranscriptSelect();renderAll()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));
+function modal(html){$('modalContent').innerHTML=html;$('modal').classList.add('show')}
+function closeModal(){$('modal').classList.remove('show')}
+$('modal').onclick=e=>{if(e.target===$('modal'))closeModal()}
+
+function openStudent(id=''){let s=data.students.find(x=>x.id===id)||{title:'Miss',first_name:'',last_name:'',student_id:'',nationality:'Thai',date_of_birth:'',entry_date:'',graduation_date:''};
+modal(`<h2>${id?'Edit':'Add'} Student</h2><div class="grid">
+<div><label>Title</label><select id="f_title"><option>Mr.</option><option selected="${s.title==='Miss'?'selected':''}">Miss</option><option>Mrs.</option><option>Ms.</option></select></div>
+<div><label>First Name</label><input id="f_first" value="${esc(s.first_name)}"></div><div><label>Last Name</label><input id="f_last" value="${esc(s.last_name)}"></div>
+<div><label>Student ID</label><input id="f_sid" value="${esc(s.student_id)}"></div><div><label>Nationality</label><input id="f_nat" value="${esc(s.nationality)}"></div><div></div>
+<div><label>Date of Birth</label><input type="date" id="f_dob" value="${s.date_of_birth||''}"></div><div><label>Entry Date</label><input type="date" id="f_entry" value="${s.entry_date||''}"></div><div><label>Graduation Date</label><input type="date" id="f_grad" value="${s.graduation_date||''}"></div>
+</div><div class="actions"><button class="btn primary" onclick="saveStudent('${id}')">Save Student</button><button class="btn secondary" onclick="closeModal()">Cancel</button></div>`)}
+
+function saveStudent(id){let s={id:id||uid(),title:$('f_title').value,first_name:$('f_first').value.trim(),last_name:$('f_last').value.trim(),student_id:$('f_sid').value.trim(),nationality:$('f_nat').value.trim(),date_of_birth:$('f_dob').value,entry_date:$('f_entry').value,graduation_date:$('f_grad').value};if(!s.first_name||!s.student_id){alert('Please enter First Name and Student ID');return}let i=data.students.findIndex(x=>x.id===s.id);if(i>=0)data.students[i]=s;else data.students.push(s);save();closeModal();renderAll()}
+function deleteStudent(id){if(confirm('Delete this student and related academic records?')){data.students=data.students.filter(x=>x.id!==id);data.records=data.records.filter(x=>x.student_id!==id);save();renderAll()}}
+function renderStudents(){let q=($('studentSearch')?.value||'').toLowerCase();let rows=data.students.filter(s=>(s.first_name+' '+s.last_name+' '+s.student_id).toLowerCase().includes(q)).map(s=>`<tr><td>${esc(s.title)} ${esc(s.first_name)} ${esc(s.last_name)}</td><td>${esc(s.student_id)}</td><td>${esc(s.nationality)}</td><td>${fmtDate(s.graduation_date)}</td><td><button class="btn secondary" onclick="openStudent('${s.id}')">Edit</button> <button class="btn danger" onclick="deleteStudent('${s.id}')">Delete</button></td></tr>`).join('');$('studentsTable').innerHTML=rows?`<table><thead><tr><th>Student</th><th>ID</th><th>Nationality</th><th>Graduation</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No students yet. Click “Add Student”.</div>'}
+
+function openSubject(id=''){let s=data.subjects.find(x=>x.id===id)||{code:'',name:'',default_credit:'1'};
+modal(`<h2>${id?'Edit':'Add'} Subject</h2><div class="grid2"><div><label>Subject Code</label><input id="sub_code" value="${esc(s.code)}"></div><div><label>Subject Name</label><input id="sub_name" value="${esc(s.name)}"></div><div><label>Default Credit</label><input type="number" step="0.5" id="sub_credit" value="${esc(s.default_credit)}"></div></div><div class="actions"><button class="btn primary" onclick="saveSubject('${id}')">Save Subject</button><button class="btn secondary" onclick="closeModal()">Cancel</button></div>`)}
+function saveSubject(id){let s={id:id||uid(),code:$('sub_code').value.trim(),name:$('sub_name').value.trim(),default_credit:$('sub_credit').value||'0'};if(!s.code||!s.name){alert('Please enter subject code and name');return}let i=data.subjects.findIndex(x=>x.id===s.id);if(i>=0)data.subjects[i]=s;else data.subjects.push(s);save();closeModal();renderAll()}
+function deleteSubject(id){if(confirm('Delete subject and related records?')){data.subjects=data.subjects.filter(x=>x.id!==id);data.records=data.records.filter(x=>x.subject_id!==id);save();renderAll()}}
+function renderSubjects(){let rows=data.subjects.map(s=>`<tr><td>${esc(s.code)}</td><td>${esc(s.name)}</td><td>${esc(s.default_credit)}</td><td><button class="btn secondary" onclick="openSubject('${s.id}')">Edit</button> <button class="btn danger" onclick="deleteSubject('${s.id}')">Delete</button></td></tr>`).join('');$('subjectsTable').innerHTML=rows?`<table><thead><tr><th>Code</th><th>Subject</th><th>Credit</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No subjects yet.</div>'}
+
+function openRecord(id=''){if(!data.students.length||!data.subjects.length){alert('Please add at least one Student and Subject first.');return}let r=data.records.find(x=>x.id===id)||{student_id:data.students[0].id,subject_id:data.subjects[0].id,grade_level:'G9',credit:'1',semester1:'',semester2:''};
+let studentOpts=data.students.map(s=>`<option value="${s.id}" ${s.id===r.student_id?'selected':''}>${esc(s.student_id)} — ${esc(s.first_name)} ${esc(s.last_name)}</option>`).join('');let subjectOpts=data.subjects.map(s=>`<option value="${s.id}" ${s.id===r.subject_id?'selected':''}>${esc(s.code)} — ${esc(s.name)}</option>`).join('');
+modal(`<h2>${id?'Edit':'Add'} Academic Record</h2><div class="grid"><div><label>Student</label><select id="r_student">${studentOpts}</select></div><div><label>Subject</label><select id="r_subject">${subjectOpts}</select></div><div><label>Grade Level</label><input id="r_level" value="${esc(r.grade_level)}" placeholder="G9"></div><div><label>Credit</label><input type="number" step="0.5" id="r_credit" value="${esc(r.credit)}"></div><div><label>Semester 1 Letter Grade</label><input id="r_s1" value="${esc(r.semester1)}" placeholder="A"></div><div><label>Semester 2 Letter Grade</label><input id="r_s2" value="${esc(r.semester2)}" placeholder="A"></div></div><div class="actions"><button class="btn primary" onclick="saveRecord('${id}')">Save Record</button><button class="btn secondary" onclick="closeModal()">Cancel</button></div>`)}
+function saveRecord(id){let r={id:id||uid(),student_id:$('r_student').value,subject_id:$('r_subject').value,grade_level:$('r_level').value.trim(),credit:$('r_credit').value,semester1:$('r_s1').value.trim(),semester2:$('r_s2').value.trim()};let i=data.records.findIndex(x=>x.id===r.id);if(i>=0)data.records[i]=r;else data.records.push(r);save();closeModal();renderAll()}
+function deleteRecord(id){if(confirm('Delete this record?')){data.records=data.records.filter(x=>x.id!==id);save();renderAll()}}
+function renderRecords(){let rows=data.records.map(r=>{let st=data.students.find(x=>x.id===r.student_id)||{},su=data.subjects.find(x=>x.id===r.subject_id)||{};return `<tr><td>${esc(st.student_id||'Deleted')}</td><td>${esc(su.code||'')}</td><td>${esc(su.name||'')}</td><td>${esc(r.grade_level)}</td><td>${esc(r.credit)}</td><td>${esc(r.semester1||'-')}</td><td>${esc(r.semester2||'-')}</td><td><button class="btn secondary" onclick="openRecord('${r.id}')">Edit</button> <button class="btn danger" onclick="deleteRecord('${r.id}')">Delete</button></td></tr>`}).join('');$('recordsTable').innerHTML=rows?`<table><thead><tr><th>Student ID</th><th>Code</th><th>Subject</th><th>Level</th><th>Credit</th><th>Sem 1</th><th>Sem 2</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No academic records yet.</div>'}
+
+function renderTranscriptSelect(){let sel=$('transcriptStudent');sel.innerHTML=data.students.length?data.students.map(s=>`<option value="${s.id}">${esc(s.student_id)} — ${esc(s.title)} ${esc(s.first_name)} ${esc(s.last_name)}</option>`).join(''):'<option value="">No students available</option>'}
+function previewTranscript(){let id=$('transcriptStudent').value,s=data.students.find(x=>x.id===id);if(!s){$('transcriptPreview').innerHTML='<div class="card empty">Add a student first.</div>';return}let recs=data.records.filter(r=>r.student_id===id);let rows=recs.map(r=>{let su=data.subjects.find(x=>x.id===r.subject_id)||{};return `<tr><td>${esc(r.grade_level)}</td><td>${esc(su.code||'')}</td><td>${esc(su.name||'')}</td><td>${esc(r.credit)}</td><td>${esc(r.semester1||'')}</td><td>${esc(r.semester2||'')}</td></tr>`}).join('')||'<tr><td colspan="6" style="text-align:center">No academic records</td></tr>';let type=$('transcriptType').value;
+$('transcriptPreview').innerHTML=`<div class="transcript"><h1>${esc(data.settings.school||'ACIS')}</h1><div class="school">${esc(type)}<br>Academic Transcript</div><div class="info"><div><b>Student Name:</b> ${esc(s.title)} ${esc(s.first_name)} ${esc(s.last_name)}</div><div><b>Student ID:</b> ${esc(s.student_id)}</div><div><b>Nationality:</b> ${esc(s.nationality)}</div><div><b>Date of Birth:</b> ${fmtDate(s.date_of_birth)}</div><div><b>Entry Date:</b> ${fmtDate(s.entry_date)}</div><div><b>Graduation Date:</b> ${fmtDate(s.graduation_date)}</div></div><table><thead><tr><th>Grade Level</th><th>Subject Code</th><th>Subject</th><th>Credit</th><th>Semester 1</th><th>Semester 2</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+data.history.unshift({id:uid(),student:s.student_id,name:s.first_name+' '+s.last_name,date:new Date().toLocaleString()});data.history=data.history.slice(0,50);save();renderHistory()}
+function renderHistory(){let rows=data.history.map(h=>`<tr><td>${esc(h.student)}</td><td>${esc(h.name)}</td><td>${esc(h.date)}</td></tr>`).join('');$('historyTable').innerHTML=rows?`<table><thead><tr><th>Student ID</th><th>Student</th><th>Generated</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No transcript history yet.</div>'}
+function importCSV(){let f=$('csvFile').files[0];if(!f){alert('Choose a CSV file first.');return}let type=$('importType').value,reader=new FileReader();reader.onload=e=>{let lines=e.target.result.trim().split(/\r?\n/);if(lines.length<2){alert('CSV has no data.');return}let headers=lines.shift().split(',').map(x=>x.trim());let count=0;lines.forEach(line=>{let vals=line.split(',').map(x=>x.trim()),o={};headers.forEach((h,i)=>o[h]=vals[i]||'');if(type==='students'&&o.student_id){data.students.push({id:uid(),title:o.title||'Miss',first_name:o.first_name||'',last_name:o.last_name||'',student_id:o.student_id,nationality:o.nationality||'',date_of_birth:o.date_of_birth||'',entry_date:o.entry_date||'',graduation_date:o.graduation_date||''});count++}if(type==='subjects'&&o.code){data.subjects.push({id:uid(),code:o.code,name:o.name||'',default_credit:o.default_credit||'1'});count++}});save();renderAll();alert(`Imported ${count} ${type}.`)};reader.readAsText(f)}
+function downloadTemplate(){let type=$('importType').value,csv=type==='students'?'title,first_name,last_name,student_id,nationality,date_of_birth,entry_date,graduation_date\nMiss,Bhenponne,Christarachai,220113,Thai,2008-10-01,2022-08-01,2027-05-30':'code,name,default_credit\nENG101,English Language Arts,1';let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=type+'_template.csv';a.click()}
+function saveSettings(){data.settings.school=$('schoolName').value.trim()||'ACIS';data.settings.title=$('transcriptTitle').value.trim()||'OFFICIAL TRANSCRIPT';save();alert('Settings saved.')}
+function resetDemo(){if(confirm('Delete all locally stored data?')){localStorage.removeItem(key);location.reload()}}
+function refreshCounts(){if($('studentCount'))$('studentCount').textContent=data.students.length;if($('subjectCount'))$('subjectCount').textContent=data.subjects.length;if($('recordCount'))$('recordCount').textContent=data.records.length}
+function renderAll(){renderStudents();renderSubjects();renderRecords();renderHistory();refreshCounts();$('schoolName').value=data.settings.school||'ACIS';$('transcriptTitle').value=data.settings.title||'OFFICIAL TRANSCRIPT'}
+renderAll();
+</script>
+</body></html>
